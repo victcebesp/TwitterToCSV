@@ -33,10 +33,10 @@ public class TweetsToCSVConverter {
 
         List<Status> tweets = twitterRetriever.retrieveTweets(hashtag, 200);
 
-        String header = "Day,CountryCode,TweetType,Size,RetweetCount,ReplyCount";
+        String header = "ID,TimeStamp,CountryCode,TweetType,Size,RetweetCount,LikeCount";
 
         List<String> tweetsAsStringList = tweets.stream()
-                .filter(e -> e.getPlace() != null)
+                .filter(s -> s.getPlace() != null)
                 .map(this::tweetToString)
                 .collect(Collectors.toList());
 

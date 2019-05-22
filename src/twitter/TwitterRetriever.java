@@ -4,6 +4,7 @@ import twitter4j.Query;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,21 +16,31 @@ public class TwitterRetriever {
         this.twitterLogger = tweeterLogger;
     }
 
-    public List<Status> retrieveTweets(String searchTerm, int quantity) throws TwitterException {
+    public List<Status> retrieveTweets(String searchTerm, int quantity) {
         
-        Query query = new Query(searchTerm).count(100);
-        
-        List<Status> tweets = twitterLogger.login()
-                                           .twitter()
-                                           .search(query)
-                                           .getTweets();
-        
-        while(tweets.size() < quantity) {
-            query.setMaxId(getMaxId(tweets));
-            tweets.addAll(twitterLogger.login().twitter().search(query).getTweets());
+        Query query = new Query(searchTerm).count(200);
+
+        List<Status> tweets = new ArrayList<>();
+        try {
+            tweets = twitterLogger.login()
+                                  .twitter()
+                                  .search(query)
+                                  .getTweets();
+
+            while(tweets.size() < quantity) {
+                query.setMaxId(getMaxId(tweets));
+                tweets.addAll(twitterLogger.login()
+                        .twitter()
+                        .search(query)
+                        .getTweets());
+            }
+        } catch (TwitterException e) {
+            System.out.println(tweets.size());
+            return tweets;
         }
 
-        return tweets.subList(0, quantity);
+        System.out.println(tweets.size());
+        return tweets;
     }
 
     private static Long getMaxId(List<Status> tweets) {
@@ -41,15 +52,4 @@ public class TwitterRetriever {
         return collection.get(0);
     }
 
-    public Status retrieveTweetById(long tweetID) {
-        Status tweet = null;
-        try {
-            tweet = twitterLogger.login()
-                                .twitter()
-                                .showStatus(tweetID);
-        } catch (TwitterException e) {
-            e.printStackTrace();
-        }
-        return tweet;
-    }
 }
